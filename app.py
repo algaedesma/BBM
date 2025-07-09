@@ -11,28 +11,21 @@ import streamlit as st
 import pandas as pd
 import joblib
 
-# =====================================
-# LOAD MODEL & PREPROCESSOR
-# =====================================
-model = joblib.load("model_fuel.pkl")
-preprocessor = joblib.load("preprocessor.pkl")  # Hasil dari fit di training!
+# Load model pipeline
+model_pipeline = joblib.load("model_fuel.pkl")
 
-# =====================================
-# APLIKASI STREAMLIT
-# =====================================
-st.title("🚗 Prediksi Biaya Bahan Bakar Tahunan (Indonesia)")
+st.title("🚘 Prediksi Biaya Bahan Bakar Tahunan di Indonesia 🇮🇩")
+st.write("Masukkan data kendaraan untuk prediksi biaya bahan bakar tahunan (Rp).")
 
-st.write("Masukkan data kendaraan kamu untuk memprediksi estimasi biaya bahan bakar tahunan dalam Rupiah.")
-
-# INPUT PENGGUNA
+# Input dari user
 year = st.number_input("Tahun Kendaraan", min_value=1980, max_value=2025, value=2015)
-engine_cylinders = st.selectbox("Jumlah Silinder Mesin", options=[2, 3, 4, 5, 6, 8], index=2)
-engine_displacement = st.number_input("Kapasitas Mesin (Liter)", min_value=0.5, max_value=10.0, value=2.0, step=0.1)
+engine_cylinders = st.selectbox("Jumlah Silinder Mesin", options=[2, 3, 4, 5, 6, 8])
+engine_displacement = st.number_input("Kapasitas Mesin (Liter)", min_value=0.0, max_value=10.0, value=2.0, step=0.1)
 fuel_type = st.selectbox("Jenis Bahan Bakar", options=["Regular", "Premium", "Diesel", "Electricity"])
 vehicle_class = st.selectbox("Kelas Kendaraan", options=["Compact", "SUV", "Sedan", "Pickup", "Minivan"])
 
-# BENTUK DATAFRAME
-input_df = pd.DataFrame({
+# Buat dataframe input
+user_input = pd.DataFrame({
     "year": [year],
     "engine_cylinders": [engine_cylinders],
     "engine_displacement": [engine_displacement],
@@ -40,16 +33,10 @@ input_df = pd.DataFrame({
     "vehicle_class": [vehicle_class]
 })
 
-# =====================================
-# PROSES PREDIKSI
-# =====================================
-if st.button("🔍 Prediksi Biaya BBM"):
+# Prediksi
+if st.button("Prediksi"):
     try:
-        # Transformasi sesuai pipeline training
-        input_transformed = preprocessor.transform(input_df)
-
-        # Prediksi
-        pred = model.predict(input_transformed)[0]
-        st.success(f"💰 Estimasi Biaya BBM Tahunan: **Rp {pred:,.0f}**")
+        prediction = model_pipeline.predict(user_input)[0]
+        st.success(f"💸 Estimasi Biaya BBM per Tahun: **Rp {prediction:,.0f}**")
     except Exception as e:
         st.error(f"Terjadi kesalahan saat prediksi: {e}")
