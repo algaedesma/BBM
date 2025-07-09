@@ -42,3 +42,20 @@ if st.button("Prediksi Biaya Bahan Bakar"):
         st.success(f"💸 Estimasi Biaya Bahan Bakar Tahunan: **Rp {prediction:,.0f}**")
     except Exception as e:
         st.error(f"Terjadi error saat prediksi: {e}")
+
+from sklearn.base import BaseEstimator, TransformerMixin
+
+class Winsorizer(BaseEstimator, TransformerMixin):
+    def __init__(self, lower=0.01, upper=0.99):
+        self.lower = lower
+        self.upper = upper
+
+    def fit(self, X, y=None):
+        import pandas as pd
+        self.lower_bounds_ = pd.DataFrame(X).quantile(self.lower)
+        self.upper_bounds_ = pd.DataFrame(X).quantile(self.upper)
+        return self
+
+    def transform(self, X):
+        import pandas as pd
+        return pd.DataFrame(X).clip(self.lower_bounds_, self.upper_bounds_, axis=1)
