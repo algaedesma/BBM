@@ -9,55 +9,29 @@ Original file is located at
 
 import streamlit as st
 import pandas as pd
-import numpy as np
 import joblib
-from sklearn.preprocessing import RobustScaler, OneHotEncoder
-from sklearn.compose import ColumnTransformer
-from sklearn.pipeline import Pipeline
-from sklearn.linear_model import LinearRegression
 
-# -------------------------------
-# Load model
-# -------------------------------
-model = joblib.load("model_fuel.pkl")  # Pastikan file ini ada di folder yang sama
+# =====================================
+# LOAD MODEL & PREPROCESSOR
+# =====================================
+model = joblib.load("model_fuel.pkl")
+preprocessor = joblib.load("preprocessor.pkl")  # Hasil dari fit di training!
 
-# -------------------------------
-# Definisi ulang preprocessing (tanpa pkl)
-# -------------------------------
-# Fitur numerik dan kategorik sesuai training
-num_features = ['year', 'engine_cylinders', 'engine_displacement']
-cat_features = ['fuel_type', 'vehicle_class']
+# =====================================
+# APLIKASI STREAMLIT
+# =====================================
+st.title("🚗 Prediksi Biaya Bahan Bakar Tahunan (Indonesia)")
 
-# Pipeline numerik dan kategorik
-num_pipeline = Pipeline([
-    ('scaler', RobustScaler())
-])
+st.write("Masukkan data kendaraan kamu untuk memprediksi estimasi biaya bahan bakar tahunan dalam Rupiah.")
 
-cat_pipeline = Pipeline([
-    ('onehot', OneHotEncoder(handle_unknown='ignore', sparse_output=False))
-])
-
-# Gabungkan
-preprocessor = ColumnTransformer([
-    ('num', num_pipeline, num_features),
-    ('cat', cat_pipeline, cat_features)
-])
-
-# -------------------------------
-# Streamlit UI
-# -------------------------------
-st.title("🚗 Prediksi Biaya Bahan Bakar Tahunan di Indonesia 🇮🇩")
-
-st.write("Masukkan spesifikasi kendaraan kamu, lalu tekan prediksi!")
-
-# Input pengguna
+# INPUT PENGGUNA
 year = st.number_input("Tahun Kendaraan", min_value=1980, max_value=2025, value=2015)
 engine_cylinders = st.selectbox("Jumlah Silinder Mesin", options=[2, 3, 4, 5, 6, 8], index=2)
 engine_displacement = st.number_input("Kapasitas Mesin (Liter)", min_value=0.5, max_value=10.0, value=2.0, step=0.1)
 fuel_type = st.selectbox("Jenis Bahan Bakar", options=["Regular", "Premium", "Diesel", "Electricity"])
 vehicle_class = st.selectbox("Kelas Kendaraan", options=["Compact", "SUV", "Sedan", "Pickup", "Minivan"])
 
-# Buat DataFrame input
+# BENTUK DATAFRAME
 input_df = pd.DataFrame({
     "year": [year],
     "engine_cylinders": [engine_cylinders],
@@ -66,13 +40,13 @@ input_df = pd.DataFrame({
     "vehicle_class": [vehicle_class]
 })
 
-# -------------------------------
-# Prediksi
-# -------------------------------
-if st.button("🔍 Prediksi"):
+# =====================================
+# PROSES PREDIKSI
+# =====================================
+if st.button("🔍 Prediksi Biaya BBM"):
     try:
-        # Preprocess
-        input_transformed = preprocessor.fit_transform(input_df)
+        # Transformasi sesuai pipeline training
+        input_transformed = preprocessor.transform(input_df)
 
         # Prediksi
         pred = model.predict(input_transformed)[0]
