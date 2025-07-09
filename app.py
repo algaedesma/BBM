@@ -1,3 +1,26 @@
+from sklearn.base import BaseEstimator, TransformerMixin
+
+class Winsorizer(BaseEstimator, TransformerMixin):
+    def __init__(self, lower=0.01, upper=0.99):
+        self.lower = lower
+        self.upper = upper
+
+    def fit(self, X, y=None):
+        # Harus DataFrame, karena .quantile() hanya ada di pandas
+        import pandas as pd
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+        self.lower_bounds_ = X.quantile(self.lower)
+        self.upper_bounds_ = X.quantile(self.upper)
+        return self
+
+    def transform(self, X):
+        import pandas as pd
+        if not isinstance(X, pd.DataFrame):
+            X = pd.DataFrame(X)
+        return X.clip(self.lower_bounds_, self.upper_bounds_, axis=1)
+
+
 # -*- coding: utf-8 -*-
 """app
 
